@@ -1,0 +1,61 @@
+[project]
+name = "xcutils"
+version = "0.1.0"
+description = "A toolbelt of cross-cloud migration utilities that authenticate via the cloud CLIs (Azure CLI, Google Cloud SDK) instead of service account keys."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Ethan Siew", email = "ethan.siew@gmail.com" }]
+keywords = ["cloud", "migration", "azure", "gcp", "blob", "storage"]
+
+dependencies = [
+    "typer>=0.12",
+    "rich>=13",                 # live progress display (used directly, not just via typer)
+    # Cloud CLI-based auth + blob access. No service account keys are used.
+    "azure-identity>=1.17",     # AzureCliCredential -> reuses `az login` session
+    "azure-storage-blob>=12.20",
+    "google-cloud-storage>=2.17", # uses Application Default Credentials (gcloud)
+]
+
+[project.scripts]
+# One console entry point per utility. Add a line here for each new tool.
+xccopy = "xccopy.cli:app"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+    "mypy>=1.11",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# Each utility is its own package folder under src/; xcutils_common holds shared code.
+packages = ["src/xccopy", "src/xcutils_common"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src"]
+
+# Cloud SDKs ship without type stubs / py.typed markers.
+[[tool.mypy.overrides]]
+module = ["google.*", "azure.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+    "slow: long-running tests (large transfers)",
+]

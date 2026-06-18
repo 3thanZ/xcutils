@@ -1,0 +1,27 @@
+# Pre-commit hooks for xcutils.
+#
+# Purpose: stop secrets from ever entering this PUBLIC repository. The project
+# also forbids service account keys by design (see the constitution), so the
+# hooks below double as enforcement of that rule.
+#
+# One-time setup per clone:
+#   uv tool install pre-commit      # or: pipx install pre-commit
+#   pre-commit install              # wires up the git pre-commit hook
+#
+# Scan everything on demand (e.g. before going public):
+#   pre-commit run --all-files
+repos:
+  # Primary secret scanner. Catches API keys, tokens, cloud creds, private keys,
+  # high-entropy strings, etc. By default it scans the staged diff at commit time.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+
+  # Cheap, high-signal guards that complement gitleaks.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: detect-private-key        # SSH / PEM / PGP private key blocks
+      - id: check-added-large-files   # accidental data dumps or key bundles
+        args: ["--maxkb=5120"]

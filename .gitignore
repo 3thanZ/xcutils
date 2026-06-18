@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# uv
+# (uv.lock IS committed; the virtualenv is not)
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Agent / local config that may contain credentials or machine-specific paths.
+# Spec Kit warns that agent folders can hold auth tokens.
+.claude/settings.local.json
+
+# Cloud credentials must NEVER be committed. xcutils relies on the cloud CLIs'
+# own credential stores (az / gcloud), never on key files in the repo.
+*.json.key
+*-key.json
+*credentials*.json
+application_default_credentials.json
+.env
+.env.*
+
+# OS
+.DS_Store
