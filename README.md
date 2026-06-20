@@ -40,6 +40,39 @@ az login
 gcloud auth application-default login
 ```
 
+### Required permissions
+
+xccopy needs read access on the source and write access on the destination.
+Assign these to the identity you authenticate with (not a service account key).
+
+**Azure** — assign built-in roles on the relevant container or storage account:
+
+| Role | When needed |
+| ---- | ----------- |
+| `Storage Blob Data Reader` | identity is reading from an Azure source |
+| `Storage Blob Data Contributor` | identity is writing to an Azure destination |
+
+> If both source and destination are in the same Azure account, assign
+> `Storage Blob Data Contributor` (it includes read).
+
+**GCP** — assign IAM roles on the relevant bucket:
+
+| Role | When needed |
+| ---- | ----------- |
+| `roles/storage.objectViewer` | identity is reading from a GCS source |
+| `roles/storage.objectAdmin` | identity is writing to a GCS destination |
+
+> `roles/storage.objectCreator` is not sufficient for the destination because
+> xccopy re-reads object metadata after the upload to verify integrity
+> (`storage.objects.get`), which `objectCreator` does not grant.
+
+#### Integration tests
+
+Unit and contract tests (`uv run pytest`) are fully offline — no cloud credentials
+required. Live integration tests (`XCCOPY_LIVE=1 uv run pytest tests/integration/`)
+touch real cloud resources and need the same roles as production, scoped to the
+test buckets/containers pointed to by `XCCOPY_TEST_SRC` and `XCCOPY_TEST_DST`.
+
 ## `xccopy` — streaming blob copy
 
 Copy an object between clouds (or within one), streaming in bounded chunks so
